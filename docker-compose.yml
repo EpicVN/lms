@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  # Map cổng 3000 của máy với cổng 80 của Nginx
+    depends_on:
+      - backend  # Chờ backend khởi động trước
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"  # Map cổng backend
+    environment:
+      - NODE_ENV=production
