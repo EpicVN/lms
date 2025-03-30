@@ -4,15 +4,21 @@ services:
       context: ./client
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"  # Map cổng 3000 của máy với cổng 80 của Nginx
+      - "5173:5173"
+    volumes:
+      - ./client:/app # Đồng bộ thư mục client vào container
+      - /app/node_modules # Tránh ghi đè node_modules
     depends_on:
-      - backend  # Chờ backend khởi động trước
+      - backend # Chờ backend khởi động trước
 
   backend:
     build:
       context: ./server
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"  # Map cổng backend
+      - "5000:5000" # Map cổng backend
+    volumes:
+      - ./server:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=production
