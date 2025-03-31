@@ -8,6 +8,8 @@ services:
     volumes:
       - ./client:/app # Đồng bộ thư mục client vào container
       - /app/node_modules # Tránh ghi đè node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend # Chờ backend khởi động trước
 
