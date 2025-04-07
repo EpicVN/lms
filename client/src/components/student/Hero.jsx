@@ -31,14 +31,6 @@ const Hero = () => {
       </p>
 
       <SearchBar />
-
-      <Companies />
-
-      <CoursesSection />
-
-      <TestimonialsSection />
-
-      <CallToAction />
     </div>
   );
 };
