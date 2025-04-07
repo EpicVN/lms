@@ -11,7 +11,7 @@ const CoursesSection = () => {
       <h2 className="text-3xl font-medium text-gray-800">
         Learn from the best
       </h2>
-      <p className="text-sm md:text-base text-gray-500 t-3">
+      <p className="text-sm md:text-base text-gray-500 mt-3">
         Discover our top-rated courses across various categories. From coding
         and design to <br /> business and wellness, our courses are crafted to
         deliver results.
