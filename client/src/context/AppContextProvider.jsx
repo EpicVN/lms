@@ -9,6 +9,7 @@ export const AppContextProvider = (props) => {
 
   const [allCoures, setAllCourses] = useState([]);
   const [isEducator, setIsEducator] = useState(true);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
 
   // Fetch All Courses
   const fetchAllCourses = async () => {
@@ -32,7 +33,9 @@ export const AppContextProvider = (props) => {
   // Calculate course chapter time
   const calculateChapterTime = (chapter) => {
     let totalTime = 0;
-    chapter.chapterContent.map((lecture) => (totalTime += lecture.lectureDuration));
+    chapter.chapterContent.map(
+      (lecture) => (totalTime += lecture.lectureDuration)
+    );
 
     return humanizeDuration(totalTime * 60 * 1000, { units: ["h", "m"] });
   };
@@ -61,8 +64,14 @@ export const AppContextProvider = (props) => {
     return totalLectures;
   };
 
+  // Fetch user enrolled courses
+  const fetchEnrolledCourses = async () => {
+    setEnrolledCourses(dummyCourses);
+  };
+
   useEffect(() => {
     fetchAllCourses();
+    fetchEnrolledCourses();
   }, []);
 
   const value = {
@@ -75,6 +84,7 @@ export const AppContextProvider = (props) => {
     calculateChapterTime,
     calculateCourseDuration,
     calculateNoOfLectures,
+    enrolledCourses,
   };
 
   return (
