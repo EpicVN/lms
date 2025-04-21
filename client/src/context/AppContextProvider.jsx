@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AppContext } from "./AppContext";
 import { dummyCourses } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ export const AppContextProvider = (props) => {
   const currency = import.meta.env.VITE_CURRENCY;
   const navigate = useNavigate();
 
-  const [allCoures, setAllCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
   const [isEducator, setIsEducator] = useState(true);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
 
@@ -76,7 +76,7 @@ export const AppContextProvider = (props) => {
 
   const value = {
     currency,
-    allCoures,
+    allCourses,
     navigate,
     calculateRating,
     isEducator,
