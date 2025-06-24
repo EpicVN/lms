@@ -70,3 +70,20 @@ export const addCourse = async (req, res) => {
     });
   }
 };
+
+// Get All Courses
+export const getEducatorCourse = async (req, res) => {
+  try {
+    const educator = req.auth.userId;
+
+    const courses = await Course.find({ educator });
+
+    return res.status(200).json({ success: true, courses });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

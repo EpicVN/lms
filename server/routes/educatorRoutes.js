@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addCourse,
+  getEducatorCourse,
   updateRoleToEducator,
 } from "../controllers/educatorController.js";
 import upload from "../configs/multer.js";
@@ -15,5 +16,6 @@ educatorRouter.post(
   protectEducator,
   addCourse
 );
+educatorRouter.get("/courses", protectEducator, getEducatorCourse);
 
 export default educatorRouter;
