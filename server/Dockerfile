@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5000
 
 # Chạy server
-CMD ["npm", "run", "server"]
+CMD ["npm", "run", "dev"]
