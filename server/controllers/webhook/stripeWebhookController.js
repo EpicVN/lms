@@ -11,7 +11,7 @@ export const stripeWebhooks = async (req, res) => {
 
   try {
     event = Stripe.webhooks.constructEvent(
-      request.body,
+      req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -24,9 +24,21 @@ export const stripeWebhooks = async (req, res) => {
   switch (event.type) {
     case "payment_intent.succeeded": {
       const paymentIntent = event.data.object;
+      const paymentIntentId = paymentIntent.id;
+
+      // Retrieve the session
+      const session = await stripeInstance.checkout.sessions.list({
+        payment_intent: paymentIntentId,
+      });
+
+      if (!session.data || session.data.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Session not found" });
+      }
 
       // Purchase data
-      const purchaseId = paymentIntent.metadata.purchaseId;
+      const { purchaseId } = session.data[0].metadata;
       const purchaseData = await Purchase.findById(purchaseId);
 
       if (!purchaseData) {
@@ -61,18 +73,8 @@ export const stripeWebhooks = async (req, res) => {
         });
       }
 
-      // Check if the user is already enrolled in the course
-      const existingPurchase = await Purchase.findOne({ userId, courseId });
-
-      if (existingPurchase) {
-        return res.status(400).json({
-          success: false,
-          message: "You have already purchased this course.",
-        });
-      }
-
       // Update course enrolled students
-      courseData.enrolledStudents.push(userData._id);
+      courseData.enrolledStudents.push(userData);
       await courseData.save();
 
       // Update user enrolled courses
@@ -88,9 +90,21 @@ export const stripeWebhooks = async (req, res) => {
 
     case "payment_intent.payment_failed": {
       const paymentIntent = event.data.object;
+      const paymentIntentId = paymentIntent.id;
+
+      // Retrieve the session
+      const session = await stripeInstance.checkout.sessions.list({
+        payment_intent: paymentIntentId,
+      });
+
+      if (!session.data || session.data.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Session not found" });
+      }
 
       // Purchase data
-      const purchaseId = paymentIntent.metadata.purchaseId;
+      const { purchaseId } = session.data[0].metadata;
       const purchaseData = await Purchase.findById(purchaseId);
 
       if (!purchaseData) {
