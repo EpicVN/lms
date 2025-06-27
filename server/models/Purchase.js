@@ -22,4 +22,6 @@ const PurchaseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Purchase = mongoose.model("Purchase", PurchaseSchema);
+const Purchase = mongoose.model("Purchase", PurchaseSchema);
+
+export default Purchase;
