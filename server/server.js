@@ -2,13 +2,15 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./configs/mongodb.js";
-import { clerkWebhooks } from "./controllers/webhook/clerkWebhookController.js";
-import educatorRouter from "./routes/educatorRoutes.js";
-import { clerkMiddleware } from "@clerk/express";
 import connectCloudinary from "./configs/cloudinary.js";
-import courseRouter from "./routes/courseRoutes.js";
-import userRouter from "./routes/userRoute.js";
+
+import { clerkMiddleware } from "@clerk/express";
+import { clerkWebhooks } from "./controllers/webhook/clerkWebhookController.js";
 import { stripeWebhooks } from "./controllers/webhook/stripeWebhookController.js";
+
+import educatorRouter from "./routes/educatorRoutes.js";
+import courseRouter from "./routes/courseRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 
 // Initialize express
 const app = express();

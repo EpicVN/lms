@@ -80,13 +80,13 @@ export const purchaseCourse = async (req, res) => {
       });
     }
 
-    const existingPurchase = await Purchase.findOne({ userId, courseId });
-    if (existingPurchase) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already purchased this course.",
-      });
-    }
+    // const existingPurchase = await Purchase.findOne({ userId, courseId });
+    // if (existingPurchase) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "You have already purchased this course.",
+    //   });
+    // }
 
     const purchaseData = {
       courseId: courseData._id,
@@ -190,23 +190,23 @@ export const getUserCourseProgress = async (req, res) => {
   try {
     const userId = req.auth.userId;
 
-    const { courseId, lectureId } = req.body;
+    const { courseId } = req.body;
 
-    const processData = await CourseProgress.findOne({
+    const progressData = await CourseProgress.findOne({
       userId: userId,
       courseId: courseId,
     });
 
-    if (!processData) {
-      return res.status(404).json({
-        success: false,
-        message: "No progress found for this course",
-      });
-    }
+    // if (!processData) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No progress found for this course",
+    //   });
+    // }
 
     return res.status(200).json({
       success: true,
-      processData,
+      progressData,
     });
   } catch (error) {
     console.log(error);
