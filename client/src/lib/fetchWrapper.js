@@ -4,9 +4,13 @@ export async function fetchWrapper(
   endpoint,
   { token, body, ...customConfig } = {}
 ) {
-  const headers = {
-    "Content-Type": "application/json",
-  };
+  const isFormData = body instanceof FormData;
+
+  const headers = isFormData
+    ? {}
+    : {
+        "Content-Type": "application/json",
+      };
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -22,7 +26,7 @@ export async function fetchWrapper(
   };
 
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = isFormData ? body : JSON.stringify(body);
   }
 
   try {

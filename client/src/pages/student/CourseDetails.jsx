@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { data, useParams } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../components/student/Loading";
 import { assets } from "../../assets/assets";
 import humanizeDuration from "humanize-duration";
 import Footer from "../../components/student/Footer";
 import YouTube from "react-youtube";
+import toast from "react-hot-toast";
+import { fetchWrapper } from "../../lib/fetchWrapper";
 
 const CourseDetails = () => {
   const { id } = useParams();
@@ -16,8 +18,10 @@ const CourseDetails = () => {
   const [playerData, setPlayerData] = useState(null);
 
   const {
+    backendUrl,
+    userData,
     currency,
-    allCoures,
+    getToken,
     calculateRating,
     calculateChapterTime,
     calculateCourseDuration,
@@ -25,13 +29,69 @@ const CourseDetails = () => {
   } = useContext(AppContext);
 
   const fetchCourseData = async () => {
-    const findCourse = allCoures.find((course) => course._id === id);
-    setCourseData(findCourse);
+    try {
+      const response = await fetchWrapper(`${backendUrl}/api/course/${id}`);
+
+      if (response.success) {
+        setCourseData(response.data.courseData);
+      } else {
+        toast.error(response.message || "Failed to fetch course data");
+      }
+    } catch (error) {
+      console.log("Error fetching course data: ", error);
+      toast.error(error.message);
+    }
+  };
+
+  const enrollCourseHandler = async () => {
+    try {
+      if (!userData) {
+        toast.error("Please login to enroll in the course.");
+        return;
+      }
+
+      if (isAlreadyEnrolled) {
+        toast.error("You are already enrolled in this course.");
+        return;
+      }
+
+      const token = await getToken();
+
+      if (!token) {
+        console.error("No token found, user might not be authenticated.");
+        toast.error("You need to be logged in to access this data.");
+        return;
+      }
+
+      const response = await fetchWrapper(`${backendUrl}/api/user/purchase`, {
+        method: "POST",
+        token,
+        body: {
+          courseId: courseData._id,
+        },
+      });
+
+      if (response.success) {
+        const session_url = response.data.session_url;
+        window.location.replace(session_url);
+      } else {
+        toast.error(response.message || "Failed to enroll in the course");
+      }
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
     fetchCourseData();
-  }, [allCoures]);
+  }, []);
+
+  useEffect(() => {
+    if (userData && courseData) {
+      setIsAlreadyEnrolled(userData.enrolledCourses.includes(courseData._id));
+    }
+  }, [userData, courseData]);
 
   const toggleSection = (index) => {
     setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -93,7 +153,9 @@ const CourseDetails = () => {
           {/* Course by ... */}
           <p className="text-sm">
             Course by{" "}
-            <span className="text-blue-600 underline">GreatStack</span>
+            <span className="text-blue-600 underline">
+              {courseData.educator.name}
+            </span>
           </p>
 
           {/* Course Stucture */}
@@ -271,7 +333,11 @@ const CourseDetails = () => {
             </div>
 
             {/* Enroll button */}
-            <button className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition duration-200">
+            <button
+              className="md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition duration-200"
+              onClick={enrollCourseHandler}
+              disabled={!courseData}
+            >
               {isAlreadyEnrolled ? "Already Enrolled" : "Enroll Now"}
             </button>
 

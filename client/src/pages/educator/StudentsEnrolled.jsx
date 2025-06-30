@@ -1,16 +1,47 @@
-import React, { useEffect, useState } from "react";
-import { dummyStudentEnrolled } from "../../assets/assets";
+import { useContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import Loading from "../../components/student/Loading";
+import { AppContext } from "../../context/AppContext";
+import { fetchWrapper } from "../../lib/fetchWrapper";
 
 const StudentsEnrolled = () => {
+  const { isEducator, getToken, backendUrl } = useContext(AppContext);
+
   const [enrolledStudents, setEnrolledStudents] = useState(null);
 
   const fetchEnrollStudents = async () => {
-    setEnrolledStudents(dummyStudentEnrolled);
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        console.error("No token found, user might not be authenticated.");
+        toast.error("You need to be logged in to access this data.");
+        return;
+      }
+
+      const response = await fetchWrapper(
+        `${backendUrl}/api/educator/enrolled-students`,
+        {
+          method: "GET",
+          token,
+        }
+      );
+
+      if (response.success) {
+        setEnrolledStudents(response.data.enrolledStudents.reverse());
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
-    fetchEnrollStudents();
+    if (isEducator) {
+      fetchEnrollStudents();
+    }
   }, []);
 
   return enrolledStudents ? (
@@ -19,7 +50,9 @@ const StudentsEnrolled = () => {
         <table className="md:table-auto table-fixed w-full overflow-hidden pb-4">
           <thead className="text-gray-900 border-b border-gray-500/20 text-sm text-left">
             <tr>
-              <th className="px-4 py-3 font-semibold text-center truncate">#</th>
+              <th className="px-4 py-3 font-semibold text-center truncate">
+                #
+              </th>
               <th className="px-4 py-3 font-semibold truncate">Student name</th>
               <th className="px-4 py-3 font-semibold truncate">Course Title</th>
               <th className="px-4 py-3 font-semibold truncate">Date</th>
@@ -29,13 +62,21 @@ const StudentsEnrolled = () => {
           <tbody className="text-sm text-gray-500">
             {enrolledStudents.map((student, index) => (
               <tr key={index} className="border-b border-gray-500/20">
-                <td className="px-4 py-3 text-center hidden sm:table-cell">{index + 1}</td>
+                <td className="px-4 py-3 text-center hidden sm:table-cell">
+                  {index + 1}
+                </td>
                 <td className="md:px-4 px-2 py-3 flex items-center space-x-3">
-                  <img src={student.student.imageUrl} alt="" className="w-9 h-9 rounded-full"/>
+                  <img
+                    src={student.student.imageUrl}
+                    alt=""
+                    className="w-9 h-9 rounded-full"
+                  />
                   <span className="truncate">{student.student.name}</span>
                 </td>
                 <td className="px-4 py-3 truncate">{student.courseTitle}</td>
-                <td className="px-4 py-3 truncate">{new Date(student.purchaseDate).toLocaleDateString()}</td>
+                <td className="px-4 py-3 truncate">
+                  {new Date(student.purchaseDate).toLocaleDateString()}
+                </td>
               </tr>
             ))}
           </tbody>

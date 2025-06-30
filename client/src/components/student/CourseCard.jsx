@@ -10,13 +10,15 @@ const CourseCard = ({ course }) => {
     <Link
       to={"/course/" + course._id}
       onClick={() => scrollTo(0, 0)}
-      className="border border-gray-500/30 pb-6 overflow-hidden rounded-lg"
+      className="border border-gray-500/30 pb-6 overflow-hidden rounded-lg min-h-[200px]"
     >
-      <img className="w-full" src={course.courseThumbnail} alt="" />
+      <div className="h-[200px] w-full overflow-hidden">
+        <img className="w-full h-full object-cover" src={course.courseThumbnail} alt="" />
+      </div>
 
       <div className="p-3 text-left">
         <h3 className="text-base font-semibold">{course.courseTitle}</h3>
-        <p className="text-gray-500">Great Stack</p>
+        <p className="text-gray-500">{course.educator.name}</p>
 
         <div className="flex items-center space-x-2">
           <p>{calculateRating(course)}</p>

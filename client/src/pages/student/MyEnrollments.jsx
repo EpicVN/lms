@@ -1,28 +1,87 @@
-import React, { useContext, useState } from "react";
-import { AppContext } from "../../context/AppContext";
 import { Line } from "rc-progress";
+import { useContext, useEffect, useState } from "react";
 import Footer from "../../components/student/Footer";
+import { AppContext } from "../../context/AppContext";
+import { fetchWrapper } from "../../lib/fetchWrapper";
+import toast from "react-hot-toast";
 
 const MyEnrollments = () => {
-  const { enrolledCourses, calculateCourseDuration, navigate } =
-    useContext(AppContext);
+  const {
+    backendUrl,
+    navigate,
+    getToken,
+    userData,
+    enrolledCourses,
+    fetchEnrolledCourses,
+    calculateCourseDuration,
+    calculateNoOfLectures,
+  } = useContext(AppContext);
 
-  const [progressArray, setProgressArray] = useState([
-    { lectureCompleted: 2, totalLectures: 4 },
-    { lectureCompleted: 1, totalLectures: 5 },
-    { lectureCompleted: 3, totalLectures: 6 },
-    { lectureCompleted: 4, totalLectures: 4 },
-    { lectureCompleted: 0, totalLectures: 3 },
-    { lectureCompleted: 5, totalLectures: 7 },
-    { lectureCompleted: 6, totalLectures: 8 },
-    { lectureCompleted: 2, totalLectures: 6 },
-    { lectureCompleted: 4, totalLectures: 10 },
-    { lectureCompleted: 3, totalLectures: 5 },
-    { lectureCompleted: 7, totalLectures: 7 },
-    { lectureCompleted: 1, totalLectures: 4 },
-    { lectureCompleted: 0, totalLectures: 2 },
-    { lectureCompleted: 5, totalLectures: 5 },
-  ]);
+  const [progressArray, setProgressArray] = useState([]);
+
+  const getCourseProgress = async () => {
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        console.error("No token found, user might not be authenticated.");
+        toast.error("You need to be logged in.");
+        return;
+      }
+
+      const tempProgressArray = await Promise.all(
+        enrolledCourses.map(async (course) => {
+          const response = await fetchWrapper(
+            `${backendUrl}/api/user/get-course-progress`,
+            {
+              method: "POST",
+              token,
+              body: { courseId: course._id },
+            }
+          );
+
+          if (response.statusCode === 200) {
+            const totalLectures = calculateNoOfLectures(course);
+
+            const lectureCompleted = response.data.progressData
+              ? response.data.progressData.lectureCompleted.length
+              : 0;
+
+            return {
+              totalLectures,
+              lectureCompleted,
+            };
+          } else {
+            console.error(response.message);
+            toast.error(response.message);
+          }
+        })
+      );
+
+      console.log("Temp: ", tempProgressArray);
+
+      setProgressArray(tempProgressArray);
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (userData) {
+      fetchEnrolledCourses();
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    if (enrolledCourses.length > 0) {
+      getCourseProgress();
+    }
+  }, [enrolledCourses]);
+
+  useEffect(() => {
+    console.log("Progress Array: ", progressArray);
+  }, []);
 
   return (
     <>

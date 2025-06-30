@@ -2,17 +2,46 @@ import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext.jsx";
 import { assets, dummyDashboardData } from "../../assets/assets.js";
 import Loading from "../../components/student/Loading.jsx";
+import toast from "react-hot-toast";
+import { fetchWrapper } from "../../lib/fetchWrapper.js";
 
 const Dashboard = () => {
-  const { currency } = useContext(AppContext);
+  const { currency, backendUrl, isEducator, getToken } = useContext(AppContext);
   const [dashboardData, setDashboardData] = useState(null);
 
   const fetchDashboardData = async () => {
-    setDashboardData(dummyDashboardData);
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        console.error("No token found, user might not be authenticated.");
+        toast.error("You need to be logged in to access this data.");
+        return;
+      }
+
+      const response = await fetchWrapper(
+        `${backendUrl}/api/educator/dashboard`,
+        {
+          method: "GET",
+          token,
+        }
+      );
+
+      if (response.success) {
+        setDashboardData(response.data.dashboardData);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    if (isEducator) {
+      fetchDashboardData();
+    }
   }, []);
 
   return dashboardData ? (
@@ -48,7 +77,7 @@ const Dashboard = () => {
 
             <div>
               <p className="text-2xl font-medium text-gray-600">
-                ${dashboardData.totalEarnings}
+                {currency}{dashboardData.totalEarnings}
               </p>
 
               <p className="text-base text-gray-500">Total Earnings</p>

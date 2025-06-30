@@ -1,9 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import uniqid from "uniqid";
 import Quill from "quill";
 import { assets } from "../../assets/assets";
+import { AppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
+import { fetchWrapper } from "../../lib/fetchWrapper";
 
 const AddCourse = () => {
+  const { backendUrl, getToken, currency } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -97,9 +101,53 @@ const AddCourse = () => {
     });
   };
 
-  const handleSubmit = async () => {
-    e.preventDefault();
-  }
+  const handleSubmit = async (e) => {
+    try {
+      e.preventDefault();
+
+      if (!image) {
+        toast.error("Thumbnail image is required");
+      }
+
+      const courseData = {
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice: Number(coursePrice),
+        discount: Number(discount),
+        courseContent: chapters,
+      };
+
+      const formData = new FormData();
+      formData.append("courseData", JSON.stringify(courseData));
+      formData.append("image", image);
+
+      const token = await getToken();
+
+      const response = await fetchWrapper(
+        `${backendUrl}/api/educator/add-course`,
+        {
+          method: "POST",
+          token,
+          body: formData,
+        }
+      );
+
+      if (response.statusCode === 201) {
+        toast.success(response.message);
+        setCoursesTitle("");
+        setCoursePrice(0);
+        setDiscount(0);
+        setImage(null);
+        setChapters([]);
+        quillRef.current.root.innerHTML = "";
+      } else {
+        toast.error(response.message || "Failed to add course");
+      }
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
+  };
 
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
@@ -111,7 +159,10 @@ const AddCourse = () => {
 
   return (
     <div className="h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md w-full text-gray-500">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 max-w-md w-full text-gray-500"
+      >
         {/* Course Title section */}
         <div className="flex flex-col gap-1">
           <p>Course Title</p>
@@ -134,7 +185,7 @@ const AddCourse = () => {
         {/* Course price and upload thumbnail section */}
         <div className="flex items-center justify-between flex-wrap">
           <div className="flex flex-col gap-1">
-            <p>Course Price</p>
+            <p>Course Price {currency}</p>
             <input
               type="number"
               onChange={(e) => setCoursePrice(e.target.value)}
@@ -142,6 +193,7 @@ const AddCourse = () => {
               placeholder="0"
               className="outline-none md:py-2.5 py-2 w-28 px-3 rounded border border-gray-500"
               min={0}
+              step={0.01}
               required
             />
           </div>
@@ -151,7 +203,6 @@ const AddCourse = () => {
             <label htmlFor="thumbnailImage" className="flex items-center gap-3">
               <img
                 src={assets.file_upload_icon}
-                alt=""
                 className="p-3 bg-blue-500 rounded"
               />
 
@@ -164,8 +215,7 @@ const AddCourse = () => {
               />
 
               <img
-                src={image ? URL.createObjectURL(image) : ""}
-                alt=""
+                src={image ? URL.createObjectURL(image) : null}
                 className="max-h-10"
               />
             </label>

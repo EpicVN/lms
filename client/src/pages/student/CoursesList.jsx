@@ -7,13 +7,13 @@ import { assets } from "../../assets/assets.js";
 import Footer from "../../components/student/Footer.jsx";
 
 const CoursesList = () => {
-  const { navigate, allCoures } = useContext(AppContext);
+  const { navigate, allCourses } = useContext(AppContext);
   const { input } = useParams();
   const [filteredCourse, setFilteredCourse] = useState([]);
 
   useEffect(() => {
-    if (allCoures && allCoures.length) {
-      const tempCourses = allCoures.slice();
+    if (allCourses && allCourses.length) {
+      const tempCourses = allCourses.slice();
 
       input
         ? setFilteredCourse(
@@ -23,7 +23,7 @@ const CoursesList = () => {
           )
         : setFilteredCourse(tempCourses);
     }
-  }, [allCoures, input]);
+  }, [allCourses, input]);
 
   return (
     <>

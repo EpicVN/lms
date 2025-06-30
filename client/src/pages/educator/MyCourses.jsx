@@ -1,18 +1,47 @@
-import React, { useContext, useEffect, useState } from "react";
-import { AppContext } from "../../context/AppContext";
+import { useContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import Loading from "../../components/student/Loading";
+import { AppContext } from "../../context/AppContext";
+import { fetchWrapper } from "../../lib/fetchWrapper.js";
 
 const MyCourses = () => {
-  const { currency, allCourses } = useContext(AppContext);
+  const { currency, allCourses, isEducator, getToken, backendUrl } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
 
   const fetchEducatorCourses = async () => {
-    setCourses(allCourses);
+    try {
+      const token = await getToken();
+
+      if (!token) {
+        console.error("No token found, user might not be authenticated.");
+        toast.error("You need to be logged in to access this data.");
+        return;
+      }
+
+      const response = await fetchWrapper(
+        `${backendUrl}/api/educator/courses`,
+        {
+          method: "GET",
+          token,
+        }
+      );
+
+      if (response.success) {
+        setCourses(response.data.courses);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
-    fetchEducatorCourses();
-  }, [allCourses]);
+    if (isEducator) {
+      fetchEducatorCourses();
+    }
+  }, [isEducator]);
 
   return courses ? (
     <div className="h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
