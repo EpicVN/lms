@@ -11,6 +11,7 @@ import AddCourse from "./pages/educator/AddCourse.jsx";
 import MyCourses from "./pages/educator/MyCourses.jsx";
 import Dashboard from "./pages/educator/Dashboard.jsx";
 import StudentsEnrolled from "./pages/educator/StudentsEnrolled.jsx";
+import EditCourse from "./pages/educator/EditCourse.jsx";
 import Navbar from "./components/student/Navbar.jsx";
 import "quill/dist/quill.snow.css";
 import { Toaster } from "react-hot-toast";
@@ -36,6 +37,7 @@ const App = () => {
           <Route path="/educator" element={<Dashboard />} />
           <Route path="add-course" element={<AddCourse />} />
           <Route path="my-courses" element={<MyCourses />} />
+          <Route path="my-course/:courseId/edit" element={<EditCourse />} />
           <Route path="student-enrolled" element={<StudentsEnrolled />} />
         </Route>
       </Routes>

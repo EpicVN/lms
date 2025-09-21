@@ -1,12 +1,15 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import Loading from "../../components/student/Loading";
 import { AppContext } from "../../context/AppContext";
 import { fetchWrapper } from "../../lib/fetchWrapper.js";
+import { Ellipsis, PencilLine } from "lucide-react";
 
 const MyCourses = () => {
-  const { currency, allCourses, isEducator, getToken, backendUrl } = useContext(AppContext);
+  const { currency, allCourses, isEducator, getToken, backendUrl, navigate } =
+    useContext(AppContext);
   const [courses, setCourses] = useState(null);
+  const [openCourseId, setOpenCourseId] = useState(null);
 
   const fetchEducatorCourses = async () => {
     try {
@@ -42,6 +45,20 @@ const MyCourses = () => {
       fetchEducatorCourses();
     }
   }, [isEducator]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openCourseId && !event.target.closest('.dropdown-container')) {
+        setOpenCourseId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openCourseId]);
 
   return courses ? (
     <div className="h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0">
@@ -93,6 +110,37 @@ const MyCourses = () => {
 
                   <td className="px-4 py-3">
                     {new Date(course.createdAt).toLocaleDateString()}
+                  </td>
+
+                  <td className="px-4 py-3 relative dropdown-container">
+                    <button
+                      type="button"
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                      onClick={() => setOpenCourseId(openCourseId === course._id ? null : course._id)}
+                    >
+                      <Ellipsis />
+                    </button>
+
+                    {openCourseId === course._id && (
+                      <div className={`absolute right-0 w-24 bg-white border border-gray-200 rounded-md shadow-lg z-10 ${
+                        courses.indexOf(course) >= courses.length - 2 
+                          ? 'bottom-full -mb-2' 
+                          : 'top-full -mt-4'
+                      }`}>
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setOpenCourseId(null);
+                              navigate(`/educator/my-course/${course._id}/edit`);
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            <PencilLine className="w-4 h-4 mr-3" />
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -106,6 +106,7 @@ const MyEnrollments = () => {
                     src={course.courseThumbnail}
                     alt="Course Thumbnail"
                     className="w-14 sm:w-24 md:w-28"
+                    onClick={() => navigate("/player/" + course._id)}
                   />
 
                   <div className="flex-1">

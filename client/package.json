@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/clerk-react": "5.25.5",
     "humanize-duration": "3.32.1",
+    "lucide-react": "^0.544.0",
     "quill": "2.0.3",
     "quill-delta": "5.1.0",
     "rc-progress": "4.0.0",
