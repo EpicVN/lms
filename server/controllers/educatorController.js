@@ -74,6 +74,122 @@ export const addCourse = async (req, res) => {
   }
 };
 
+// Update course
+export const updateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { courseData } = req.body;
+    const imageFile = req.file;
+    const educatorId = req.auth.userId;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Course id is required" });
+    }
+
+    if (!courseData) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Course data is missing" });
+    }
+
+    const parsedCourseData = await JSON.parse(courseData);
+
+    // Ensure educator can only update their own course
+    const course = await Course.findById(id);
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    }
+
+    if (String(course.educator) !== String(educatorId)) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to update this course",
+        });
+    }
+
+    // If a new image is provided, upload and replace thumbnail
+    if (imageFile) {
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path);
+      parsedCourseData.courseThumbnail = imageUpload.secure_url;
+    }
+
+    // Update fields present in payload
+    course.courseTitle = parsedCourseData.courseTitle ?? course.courseTitle;
+    course.courseDescription =
+      parsedCourseData.courseDescription ?? course.courseDescription;
+    course.coursePrice = parsedCourseData.coursePrice ?? course.coursePrice;
+    course.discount = parsedCourseData.discount ?? course.discount;
+    if (parsedCourseData.hasOwnProperty("isPublished")) {
+      course.isPublished = parsedCourseData.isPublished;
+    }
+    if (parsedCourseData.courseThumbnail) {
+      course.courseThumbnail = parsedCourseData.courseThumbnail;
+    }
+    if (Array.isArray(parsedCourseData.courseContent)) {
+      course.courseContent = parsedCourseData.courseContent;
+    }
+
+    await course.save();
+
+    return res.status(200).json({ success: true, message: "Course Updated" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete course
+export const deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const educatorId = req.auth.userId;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Course id is required" });
+    }
+
+    if (!educatorId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Educator id is required" });
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    }
+
+    if (String(course.educator) !== String(educatorId)) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to delete this course",
+        });
+    }
+
+    await course.deleteOne();
+
+    return res.status(200).json({ success: true, message: "Course Deleted" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// duplicate removed
+
 // Get All Courses
 export const getEducatorCourse = async (req, res) => {
   try {

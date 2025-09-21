@@ -5,6 +5,8 @@ import {
   getEducatorCourse,
   getEnrolledStudentsData,
   updateRoleToEducator,
+  updateCourse,
+  deleteCourse,
 } from "../controllers/educatorController.js";
 import upload from "../configs/multer.js";
 import protectEducator from "../middleware/authMiddleware.js";
@@ -17,6 +19,17 @@ educatorRouter.post(
   upload.single("image"),
   protectEducator,
   addCourse
+);
+educatorRouter.put(
+  "/course/:id",
+  upload.single("image"),
+  protectEducator,
+  updateCourse
+);
+educatorRouter.delete(
+  "/course/:id",
+  protectEducator,
+  deleteCourse
 );
 educatorRouter.get("/courses", protectEducator, getEducatorCourse);
 educatorRouter.get("/dashboard", protectEducator, educatorDashboardData);
